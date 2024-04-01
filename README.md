@@ -13,29 +13,21 @@ k_ori: gain of orientation requirement, default = 1.5
 dt: virtual motion time, used for trajectory msg publish and ik solver, default = 0.2 (should align with real communication frequency)
 thres: error norm threshold for early stop, default=1e-3(0.1mm)
 max_iter: max iteration number for ik solver
+ur_prefix: string
+tool_prefix string
 ```
 ## USAGE
 ```bash
-const std::vector< std::string > joint_names = {
-    "shoulder_pan_joint", 
-    "shoulder_lift_joint", 
-    "elbow_joint", 
-    "wrist_1_joint", 
-    "wrist_2_joint", 
-    "wrist_3_joint",
-    "tool_roll",
-    "tool_pitch",
-    "tool_yaw0"
-};
 Eigen::VectorXd q_vec(9);
 Eigen::VectorXd q_new(9);
 # retrieve q_vec from joint state
 robot_description_name = "robot_description";
 # retrieve robot_description from node parameters
-RCM::RCMSolver rcm_solver(node, robot_description_name, joint_names);
+RCM::RCMSolver rcm_solver(node, robot_description_name);
 # retrieve rcm_pose from geometry_msgs
 # retrieve target_pose from geometery_msgs
 rcm_solver.setRCMPoint(rcm_pose);
+# rcm_solver.setDefaultRCM(q_vec)
 rcm_solver.setDesiredPose(target_pose);
 q_new = rcm_solver.solveIK(q_vec);
 # post-process q_new

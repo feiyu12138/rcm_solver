@@ -333,11 +333,7 @@ std::pair<Eigen::VectorXd, Eigen::VectorXd> RCMSolver::calcAndUpdate(Eigen::Vect
         e << e_task, e_rcm;
         J_pinv = pseudoInverse(J);
         dq = J_pinv * K_ * e;
-        std::cout<< "dq: " << dq << std::endl;
-        std::cout<< "e: " << e << std::endl;
-        std::cout<< "J_pinv: " << J_pinv << std::endl;
-        std::cout<< "J: " << J << std::endl;
-        std::cout<< "K_: " << K_ << std::endl;
+
         for (int i =0; i < 9; i++){
             q_new(i) = q_vec(i) + dq(i) * dt_;
         }
