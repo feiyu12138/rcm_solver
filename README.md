@@ -1,5 +1,5 @@
-# rcm
-## Usage
+# Remote Center of Motion for UR5-dVrk
+## USAGE
 ```bash
 Eigen::VectorXd q_vec(9);
 Eigen::VectorXd q_new(9);
