@@ -1,4 +1,19 @@
 # Remote Center of Motion for UR5-dVrk
+## INIT PARAM
+```bash
+k_task: task gain default = 1.5
+k_rcm: rcm gain default = 5
+task_null: deprecated
+k_p: default = 1
+k_i: deprecated
+k_d: deprecated
+position_only: deprecated
+k_pos: gain of position requirement, default = 1.5
+k_ori: gain of orientation requirement, default = 1.5
+dt: virtual motion time, used for trajectory msg publish and ik solver, default = 0.2 (should align with real communication frequency)
+thres: error norm threshold for early stop, default=1e-3(0.1mm)
+max_iter: max iteration number for ik solver
+```
 ## USAGE
 ```bash
 const std::vector< std::string > joint_names = {
