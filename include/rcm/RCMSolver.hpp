@@ -15,10 +15,11 @@ namespace RCM{
 class RCMSolver
 {
 public:
-    RCMSolver(rclcpp::Node::SharedPtr node, const std::string& robot_description_name, const std::vector<std::string>& joint_names);
+    RCMSolver(rclcpp::Node::SharedPtr node, const std::string& robot_description_name);
 
     void setRCMPoint(const geometry_msgs::msg::Pose& rcm_pose);
     void setDesiredPose(const geometry_msgs::msg::Pose& target_pose);
+    void setDefaultRCM(Eigen::VectorXd q_vec);
     Eigen::VectorXd solveIK(Eigen::VectorXd q_vec);
 
 private:
@@ -55,6 +56,8 @@ private:
     double dt_;
     double thres_;
     int max_iter_;
+    std::string ur_prefix_;
+    std::string tool_prefix_;
 
     // Gain Matrix
     Eigen::MatrixXd K_;
@@ -72,6 +75,8 @@ private:
     Eigen::Vector3d FrameToVec3d(const KDL::Frame& frame);
     
     Eigen::Matrix4d FrameToMatrix(const KDL::Frame& frame);
+
+    geometry_msgs::msg::Pose FrameToPoseMsg(const KDL::Frame& frame);
     
     Eigen::MatrixXd pseudoInverse(const Eigen::MatrixXd &matrix, double tolerance = 1e-4);
     

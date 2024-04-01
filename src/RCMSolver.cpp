@@ -93,6 +93,20 @@ RCMSolver::FrameToMatrix(const KDL::Frame& frame) {
 
     return eigen_matrix;
 }
+geometry_msgs::msg::Pose 
+RCMSolver::FrameToPoseMsg(const KDL::Frame& frame){
+  geometry_msgs::msg::Pose pose;
+  pose.position.x = frame.p.x();
+  pose.position.y = frame.p.y();
+  pose.position.z = frame.p.z();
+  double x, y, z, w;
+  frame.M.GetQuaternion(x, y, z, w);
+  pose.orientation.x = x;
+  pose.orientation.y = y;
+  pose.orientation.z = z;
+  pose.orientation.w = w;
+  return pose;
+};
 std::pair<Eigen::Vector3d, double> 
 RCMSolver::findClosestPointOnSegment(Eigen::Vector3d p, Eigen::Vector3d a, Eigen::Vector3d b){
   // find the closest point on a line segment
@@ -150,10 +164,12 @@ RCMSolver::pseudoInverse(const Eigen::MatrixXd &matrix, double tolerance){
   }
   return svd.matrixV() * singularValuesInverse * svd.matrixU().adjoint();
 }
-RCMSolver::RCMSolver(rclcpp::Node::SharedPtr node, const std::string& robot_description_name, const std::vector<std::string>& joint_names)
-    : node_(node), joint_names_(joint_names)
+RCMSolver::RCMSolver(rclcpp::Node::SharedPtr node, const std::string& robot_description_name)
+    : node_(node)
 {
     node_->get_parameter("robot_description", robot_description_);
+    node_->get_parameter("ur_prefix",ur_prefix_);
+    node_->get_parameter("tool_prefix",tool_prefix_);
     initializeKDLChain();
     node_->get_parameter("k_task", k_task_);
     node_->get_parameter("k_rcm", k_rcm_);
@@ -167,6 +183,7 @@ RCMSolver::RCMSolver(rclcpp::Node::SharedPtr node, const std::string& robot_desc
     node_->get_parameter("dt",dt_);
     node_->get_parameter("thres",thres_);
     node_->get_parameter("max_iter",max_iter_);
+    
     Eigen::MatrixXd K(9,9);
     K << k_task_ * k_pos_ * Eigen::MatrixXd::Identity(3,3),  
         Eigen::MatrixXd::Zero(3,6),
@@ -180,6 +197,15 @@ RCMSolver::RCMSolver(rclcpp::Node::SharedPtr node, const std::string& robot_desc
 void RCMSolver::setRCMPoint(const geometry_msgs::msg::Pose& rcm_pose)
 {
     rcm_pose_ = rcm_pose;
+    std::cout<< "set rcm point as: "<< rcm_pose_.position.x << " " << rcm_pose_.position.y << " " << rcm_pose_.position.z << std::endl;
+}
+void RCMSolver::setDefaultRCM(Eigen::VectorXd q_vec){
+    KDL::JntArray q_cur_shaft(7);
+    q_cur_shaft = VectorToJnt(q_vec,7);
+    KDL::Frame F_cur_shaft;
+    fk_shaft_solver_->JntToCart(q_cur_shaft, F_cur_shaft);
+    rcm_pose_ = FrameToPoseMsg(F_cur_shaft);
+    std::cout<< "set rcm point as: "<< rcm_pose_.position.x << " " << rcm_pose_.position.y << " " << rcm_pose_.position.z << std::endl;
 }
 void RCMSolver::setDesiredPose(const geometry_msgs::msg::Pose& target_pose)
 {
@@ -223,9 +249,9 @@ void RCMSolver::initializeKDLChain()
     RCLCPP_ERROR(node_->get_logger(), "Failed to construct kdl tree");
     return;
     }
-    tree_.getChain("base_link","tool_tcp0",chain_);
-    tree_.getChain("base_link","tool_shaft",shaft_chain_);
-    tree_.getChain("base_link","tool_rotation",rotation_chain_);
+    tree_.getChain(ur_prefix_ + "base_link",tool_prefix_ + "tcp0",chain_);
+    tree_.getChain(ur_prefix_ + "base_link",tool_prefix_ + "shaft",shaft_chain_);
+    tree_.getChain(ur_prefix_ + "base_link",tool_prefix_ + "rotation",rotation_chain_);
     fk_solver_ = std::make_unique<KDL::ChainFkSolverPos_recursive>(chain_);
     fk_shaft_solver_ = std::make_unique<KDL::ChainFkSolverPos_recursive>(shaft_chain_);
     fk_rotation_solver_ = std::make_unique<KDL::ChainFkSolverPos_recursive>(rotation_chain_);
@@ -307,9 +333,13 @@ std::pair<Eigen::VectorXd, Eigen::VectorXd> RCMSolver::calcAndUpdate(Eigen::Vect
         e << e_task, e_rcm;
         J_pinv = pseudoInverse(J);
         dq = J_pinv * K_ * e;
-        for (int i =0;auto joint_name : joint_names_){
+        std::cout<< "dq: " << dq << std::endl;
+        std::cout<< "e: " << e << std::endl;
+        std::cout<< "J_pinv: " << J_pinv << std::endl;
+        std::cout<< "J: " << J << std::endl;
+        std::cout<< "K_: " << K_ << std::endl;
+        for (int i =0; i < 9; i++){
             q_new(i) = q_vec(i) + dq(i) * dt_;
-            i++;
         }
         if (e.norm() < thres_){
             break;
