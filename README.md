@@ -25,3 +25,9 @@ rcm_solver.setDesiredPose(target_pose);
 q_new = rcm_solver.solveIK(q_vec);
 # post-process q_new
 ```
+## TODO
+```bash
+Joint limit detection
+Singularity detection
+```
+
