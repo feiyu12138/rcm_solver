@@ -1,6 +1,17 @@
 # Remote Center of Motion for UR5-dVrk
 ## USAGE
 ```bash
+const std::vector< std::string > joint_names = {
+    "shoulder_pan_joint", 
+    "shoulder_lift_joint", 
+    "elbow_joint", 
+    "wrist_1_joint", 
+    "wrist_2_joint", 
+    "wrist_3_joint",
+    "tool_roll",
+    "tool_pitch",
+    "tool_yaw0"
+};
 Eigen::VectorXd q_vec(9);
 Eigen::VectorXd q_new(9);
 # retrieve q_vec from joint state
