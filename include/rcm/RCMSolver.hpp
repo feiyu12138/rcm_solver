@@ -44,18 +44,19 @@ private:
     std::unique_ptr<KDL::ChainJntToJacSolver> jac_shaft_solver_;
     std::unique_ptr<KDL::ChainJntToJacSolver> jac_rotation_solver_;
 
-    double k_task_;
-    double k_rcm_;
-    bool task_null_;
-    double k_p_;
-    double k_i_;
-    double k_d_;
+    double k_task_=1.5;
+    double k_rcm_=5.0;
+    bool task_null_=false;
+    double k_p_=1.0;
+    double k_i_=0.0;
+    double k_d_=0.0;
     bool position_only_;
-    double k_pos_;
-    double k_ori_;
-    double dt_;
-    double thres_;
-    int max_iter_;
+    double k_pos_=1.5;
+    double k_ori_=1.5;
+    double dt_=0.2;
+    double thres_=1e-3;
+    int max_iter_=10;
+    float offset_=0.0;
     std::string ur_prefix_;
     std::string tool_prefix_;
 

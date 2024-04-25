@@ -183,6 +183,7 @@ RCMSolver::RCMSolver(rclcpp::Node::SharedPtr node, const std::string& robot_desc
     node_->get_parameter("dt",dt_);
     node_->get_parameter("thres",thres_);
     node_->get_parameter("max_iter",max_iter_);
+    node_->get_parameter("offset",offset_);
     
     Eigen::MatrixXd K(9,9);
     K << k_task_ * k_pos_ * Eigen::MatrixXd::Identity(3,3),  
@@ -197,15 +198,16 @@ RCMSolver::RCMSolver(rclcpp::Node::SharedPtr node, const std::string& robot_desc
 void RCMSolver::setRCMPoint(const geometry_msgs::msg::Pose& rcm_pose)
 {
     rcm_pose_ = rcm_pose;
-    std::cout<< "set rcm point as: "<< rcm_pose_.position.x << " " << rcm_pose_.position.y << " " << rcm_pose_.position.z << std::endl;
 }
 void RCMSolver::setDefaultRCM(Eigen::VectorXd q_vec){
     KDL::JntArray q_cur_shaft(7);
     q_cur_shaft = VectorToJnt(q_vec,7);
     KDL::Frame F_cur_shaft;
     fk_shaft_solver_->JntToCart(q_cur_shaft, F_cur_shaft);
+    KDL::Vector offset_vec(0,0,offset_);
+    Eigen::MatrixXd tempt_matrix = FrameToMatrix(F_cur_shaft);
+    F_cur_shaft = F_cur_shaft * KDL::Frame(KDL::Rotation::Identity(), offset_vec);
     rcm_pose_ = FrameToPoseMsg(F_cur_shaft);
-    std::cout<< "set rcm point as: "<< rcm_pose_.position.x << " " << rcm_pose_.position.y << " " << rcm_pose_.position.z << std::endl;
 }
 void RCMSolver::setDesiredPose(const geometry_msgs::msg::Pose& target_pose)
 {
