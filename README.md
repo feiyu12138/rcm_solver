@@ -1,4 +1,4 @@
-# Remote Center of Motion for UR5-dVrk
+# Remote Center of Motion solver for surgical robotics
 ## INIT PARAM
 ```bash
 k_task: task gain default = 1.5
